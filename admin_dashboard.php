@@ -1,11 +1,10 @@
 <?php
 session_start();
-
-// Only allow logged-in users with admin role (role_id = 1)
-if (!isset($_SESSION['role_id']) || $_SESSION['role_id'] != 1) {
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.php");
     exit();
 }
+$username = $_SESSION['username'];
 ?>
 
 <!DOCTYPE html>
@@ -14,12 +13,16 @@ if (!isset($_SESSION['role_id']) || $_SESSION['role_id'] != 1) {
     <title>Admin Dashboard</title>
 </head>
 <body>
-    <h2>Welcome, Admin!</h2>
-    <p>You have full control over the system.</p>
-    <ul>
-        <li><a href="manage_users.php">Manage Users</a></li>
-        <li><a href="manage_files.php">Manage Files</a></li>
-        <li><a href="logout.php">Logout</a></li>
-    </ul>
+<h2>Welcome, Admin <?php echo $username; ?>!</h2>
+
+<ul>
+    <li><a href="view_files.php">View Files</a></li>
+    <li><a href="upload_file.php">Upload Files</a></li>
+    <li><a href="modify_file.php">Modify Files</a></li>
+    <li><a href="delete_file.php">Delete Files</a></li>
+    <li><a href="download_file.php">Download Files</a></li>
+</ul>
+
+<a href="logout.php">Logout</a>
 </body>
 </html>

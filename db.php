@@ -4,10 +4,15 @@ $user = "root";
 $password = ""; // XAMPP default
 $database = "file_management";
 
+// Create connection
 $conn = new mysqli($host, $user, $password, $database);
 
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+// Check connection
+if ($conn->connect_errno) {
+    // Connection failed
+    die("Failed to connect to MySQL: (" . $conn->connect_errno . ") " . $conn->connect_error);
 }
-// echo "Database connected successfully!"; // optional
+
+// Optional: Uncomment to confirm connection
+// echo "Database connected successfully!";
 ?>
