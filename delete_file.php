@@ -19,12 +19,9 @@ if (!isset($data['id'])) {
 
 $fileId = $data['id'];
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "file_management";
+include 'db.php';
 
-$conn = new mysqli($host, $user, $pass, $db);
+// Use $conn from db.php
 if ($conn->connect_error) {
     echo json_encode(['success'=>false,'message'=>'DB connection failed']);
     exit;

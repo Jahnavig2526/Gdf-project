@@ -5,11 +5,54 @@ include 'db.php'; // DB connection
 $message = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $conn->real_escape_string($_POST['username']);
-    $password = $conn->real_escape_string($_POST['password']);
+    // Check if this is an AJAX request
+    $contentType = isset($_SERVER["CONTENT_TYPE"]) ? trim($_SERVER["CONTENT_TYPE"]) : '';
+    
+    if ($contentType === 'application/json') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $action = $input['action'] ?? '';
+        
+        header('Content-Type: application/json');
+        
+        switch ($action) {
+            case 'check_auth':
+                if (isset($_SESSION['user_id'])) {
+                    echo json_encode([
+                        'success' => true,
+                        'authenticated' => true,
+                        'user' => $_SESSION['username']
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => true,
+                        'authenticated' => false
+                    ]);
+                }
+                exit;
+                
+            case 'login':
+                $username = $conn->real_escape_string($input['username']);
+                $password = $conn->real_escape_string($input['password']);
+                break;
+                
+            default:
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Invalid action'
+                ]);
+                exit;
+        }
+    } else {
+        // Regular form submission
+        $username = $conn->real_escape_string($_POST['username']);
+        $password = $conn->real_escape_string($_POST['password']);
+    }
 
-    $sql = "SELECT * FROM users WHERE username='$username' AND password='$password' LIMIT 1";
-    $result = $conn->query($sql);
+    // Prepare and execute query
+    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? AND password = ? LIMIT 1");
+    $stmt->bind_param("ss", $username, $password);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
     if ($result && $result->num_rows > 0) {
         $user = $result->fetch_assoc();

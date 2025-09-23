@@ -1,37 +1,45 @@
 <?php
-$username = $_GET['username'] ?? '';
-$password = $_GET['password'] ?? '';
-$users = ['admin'=>'1234','user1'=>'123'];
+// filepath: download_file.php
+require_once 'db.php';
 
-if (!isset($users[$username]) || $users[$username] !== $password) {
-    exit('Invalid credentials');
+session_start();
+
+if (!isset($_GET['id'])) {
+    http_response_code(400);
+    exit('File ID not provided');
 }
 
-$fileId = $_GET['id'] ?? '';
-if (!$fileId) exit('File ID missing');
+$fileId = intval($_GET['id']);
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "file_management";
-
-$conn = new mysqli($host, $user, $pass, $db);
-if ($conn->connect_error) exit('DB connection failed');
-
-$stmt = $conn->prepare("SELECT name,path,type FROM files WHERE id=?");
-$stmt->bind_param("i",$fileId);
-$stmt->execute();
-$result = $stmt->get_result();
-$file = $result->fetch_assoc();
-
-if($file && file_exists($file['path'])) {
-    header('Content-Description: File Transfer');
-    header('Content-Type: '.$file['type']);
-    header('Content-Disposition: attachment; filename="'.basename($file['name']).'"');
-    header('Content-Length: '.filesize($file['path']));
-    readfile($file['path']);
-    exit;
-} else exit('File not found');
-
-$conn->close();
+try {
+    $stmt = $pdo->prepare("SELECT * FROM files WHERE id = ?");
+    $stmt->execute([$fileId]);
+    $file = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$file) {
+        http_response_code(404);
+        exit('File not found');
+    }
+    
+    $filePath = 'uploads/' . $file['file_name'];
+    
+    if (!file_exists($filePath)) {
+        http_response_code(404);
+        exit('Physical file not found');
+    }
+    
+    // Set headers for file download
+    header('Content-Type: ' . $file['file_type']);
+    header('Content-Disposition: attachment; filename="' . $file['original_name'] . '"');
+    header('Content-Length: ' . filesize($filePath));
+    header('Cache-Control: no-cache, must-revalidate');
+    header('Expires: 0');
+    
+    // Output the file
+    readfile($filePath);
+    
+} catch (PDOException $e) {
+    http_response_code(500);
+    exit('Database error: ' . $e->getMessage());
+}
 ?>

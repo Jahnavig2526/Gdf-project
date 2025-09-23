@@ -23,12 +23,9 @@ if (!isset($users[$username]) || $users[$username] !== $password) {
     exit;
 }
 
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db = "file_management";
+include 'db.php';
 
-$conn = new mysqli($host, $user, $pass, $db);
+// Use $conn from db.php
 if ($conn->connect_error) {
     echo json_encode([]);
     exit;
